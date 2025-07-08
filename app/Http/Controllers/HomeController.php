@@ -8,11 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
-    /**
-     * Muestra la página principal con el resumen de ventas.
-     *
-     * @return \Illuminate\View\View
-     */
+   
     public function index()
     {
         $cooperativas = Cooperativa::select(
@@ -34,7 +30,7 @@ class HomeController extends Controller
 
         $total_comision_general = $cooperativas->sum('total_comision');
 
-        // Calcular ventas totales de la primera cooperativa
+        
         $primera_cooperativa = Cooperativa::orderBy('id')->first();
         $ventas_totales_primera = 0;
         if ($primera_cooperativa) {

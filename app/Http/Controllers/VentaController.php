@@ -43,7 +43,7 @@ class VentaController extends Controller
         $validated = $request->validate([
             'persona_id' => 'required|exists:personas,id',
             'precio_base' => 'required|numeric|min:0',
-            'cantidad_boletos' => 'required|integer|min:1',
+            'cantidad_boletos' => 'required|integer|min:1|max:50',
         ], [
             'persona_id.required' => 'Debe seleccionar una persona.',
             'persona_id.exists' => 'La persona seleccionada no existe.',

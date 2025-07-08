@@ -8,6 +8,8 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
     <a href="{{ route('personas.create') }}" class="btn btn-primary">Nueva Persona</a>
+   
+    
     <table class="table">
         <thead>
             <tr>

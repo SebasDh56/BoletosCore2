@@ -21,4 +21,6 @@ class CreatePersonasTable extends Migration
     {
         Schema::dropIfExists('personas');
     }
+
+    
 }

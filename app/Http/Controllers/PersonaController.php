@@ -24,6 +24,16 @@ class PersonaController extends Controller
             'nombre' => 'required|string|max:255',
             'cedula' => 'required|string|unique:personas|max:20',
             'edad' => 'required|integer|min:0|max:150',
+        ],
+    
+        [
+            'nombre.required' => 'El nombre es obligatorio.',
+            'cedula.required' => 'La cédula es obligatoria.',
+            'cedula.unique' => 'La cédula ya está registrada.',
+            'edad.required' => 'La edad es obligatoria.',
+            'edad.integer' => 'La edad debe ser un número entero.',
+            'edad.min' => 'La edad no puede ser negativa.',
+            'edad.max' => 'La edad no puede ser mayor a 150 años.',
         ]);
 
         Persona::create($request->all());
