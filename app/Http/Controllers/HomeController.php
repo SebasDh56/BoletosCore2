@@ -1,43 +1,37 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Models\Cooperativa;
-use App\Models\Venta;
 use Illuminate\Http\Request;
+use App\Models\Cooperativa;
 use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
-   
+    public function __construct()
+    {
+        $this->middleware('auth'); // Protege la ruta para usuarios autenticados
+    }
+
     public function index()
     {
-        $cooperativas = Cooperativa::select(
-            'cooperativas.id',
-            'cooperativas.nombre',
-            'cooperativas.cantidad_pasajeros',
-            'cooperativas.porcentaje_comision'
-        )
-            ->leftJoin('ventas', 'cooperativas.id', '=', 'ventas.cooperativa_id')
+        $cooperativas = Cooperativa::leftJoin('ventas', 'cooperativas.id', '=', 'ventas.cooperativa_id')
+            ->select(
+                'cooperativas.id',
+                'cooperativas.nombre',
+                'cooperativas.cantidad_pasajeros',
+                'cooperativas.porcentaje_comision',
+                DB::raw('SUM(ventas.cantidad_boletos) as total_boletos'),
+                DB::raw('SUM(ventas.comision) as total_comision')
+            )
             ->groupBy(
                 'cooperativas.id',
                 'cooperativas.nombre',
                 'cooperativas.cantidad_pasajeros',
                 'cooperativas.porcentaje_comision'
             )
-            ->selectRaw('SUM(ventas.cantidad_boletos) as boletos_vendidos')
-            ->selectRaw('SUM(ventas.comision) as total_comision')
             ->get();
 
-        $total_comision_general = $cooperativas->sum('total_comision');
-
-        
-        $primera_cooperativa = Cooperativa::orderBy('id')->first();
-        $ventas_totales_primera = 0;
-        if ($primera_cooperativa) {
-            $ventas_totales_primera = Venta::where('cooperativa_id', $primera_cooperativa->id)
-                ->sum(DB::raw('precio_base * cantidad_boletos'));
-        }
-
-        return view('home', compact('cooperativas', 'total_comision_general', 'ventas_totales_primera', 'primera_cooperativa'));
+        return view('home', compact('cooperativas'));
     }
 }

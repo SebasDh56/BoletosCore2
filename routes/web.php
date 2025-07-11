@@ -5,6 +5,8 @@ use App\Http\Controllers\PersonaController;
 use App\Http\Controllers\CooperativaController;
 use App\Http\Controllers\VentaController;
 use App\Http\Controllers\HomeController;
+use Illuminate\Support\Facades\Auth;
+
 
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -30,3 +32,7 @@ Route::post('/suma', function (Request $request) {
     
 });
 
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

@@ -1,63 +1,51 @@
 @extends('layouts.app')
 
-@section('title', 'Inicio')
+@section('title', 'Panel Principal')
 
 @section('content')
-    <h1>Bienvenido a BoletosCore</h1>
-    <p class="text-center text-muted mb-4">Sistema de gestión de ventas de boletos para cooperativas.</p>
-
     <div class="row">
-         @if ($primera_cooperativa)
-            <div class="col-md-6 mb-3">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Ventas Totales ({{ $primera_cooperativa->nombre }})</h5>
-                        <p class="card-text fs-4 text-primary">{{ number_format($ventas_totales_primera, 2) }} USD</p>
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="bi bi-speedometer2"></i> Bienvenido a BoletosCore</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Estás en el panel principal. Revisa el resumen de tus operaciones:</p>
+
+                    <!-- Sección de Resumen -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5><i class="bi bi-bar-chart-fill"></i> Resumen de Ventas</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Cooperativa</th>
+                                            <th>Total Boletos</th>
+                                            <th>Total Comisiones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($cooperativas as $cooperativa)
+                                            <tr>
+                                                <td>{{ $cooperativa->nombre }}</td>
+                                                <td>{{ $cooperativa->total_boletos ?? 0 }}</td>
+                                                <td>${{ number_format($cooperativa->total_comision ?? 0, 2) }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="3" class="text-center">No hay datos de ventas disponibles.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        @endif
-    
-    
-        <div class="col-md-6 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Total de Comisiones</h5>
-                    <p class="card-text fs-4 text-primary">{{ number_format($total_comision_general, 2) }} USD</p>
-                </div>
-            </div>
         </div>
-      
     </div>
-
-    @if ($cooperativas->isEmpty())
-        <div class="alert alert-info text-center">
-            <i class="bi bi-info-circle-fill me-2"></i> No hay cooperativas registradas.
-        </div>
-    @else
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead>
-                    <tr>
-                        <th>Cooperativa</th>
-                        <th>Boletos Disponibles</th>
-                        <th>Boletos Vendidos</th>
-                        <th>Capacidad Total</th>
-                        <th>Comisión Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($cooperativas as $cooperativa)
-                        <tr>
-                            <td>{{ $cooperativa->nombre }}</td>
-                            <td>{{ $cooperativa->cantidad_pasajeros - ($cooperativa->boletos_vendidos ?? 0) }}</td>
-                            <td>{{ $cooperativa->boletos_vendidos ?? 0 }}</td>
-                            <td>{{ $cooperativa->cantidad_pasajeros }}</td>
-                            <td>{{ number_format($cooperativa->total_comision ?? 0, 2) }} USD</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    @endif
 @endsection
