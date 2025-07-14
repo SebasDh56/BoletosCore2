@@ -1,16 +1,28 @@
 #!/usr/bin/env bash
-echo "Running composer"
-composer global require hirak/prestissimo
-composer install --no-dev --working-dir=/var/www/html
+set -e
 
-echo "generating application key..."
-php artisan key:generate --show
+echo "Instalando dependencias con Composer..."
+composer install --no-dev --optimize-autoloader --no-interaction
 
-echo "Caching config..."
+# Generar la clave solo si falta
+if [ -z "$APP_KEY" ]; then
+  echo "Generando APP_KEY..."
+  export APP_KEY=$(php artisan key:generate --show)
+  # Opcional: imprimirla para que la copies al dashboard
+  echo "APP_KEY generada: $APP_KEY"
+fi
+
+# Archivo bandera para migrar solo una vez
+FLAG="/var/www/html/storage/app/migrated.txt"
+
+if [ ! -f "$FLAG" ]; then
+  echo "Ejecutando migraciones..."
+  php artisan migrate --force
+  touch "$FLAG"
+else
+  echo "Migraciones ya ejecutadas, saltando..."
+fi
+
+echo "Cacheando configuración..."
 php artisan config:cache
-
-echo "Caching routes..."
 php artisan route:cache
-
-echo "Running migrations..."
-php artisan migrate --force
