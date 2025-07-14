@@ -8,7 +8,6 @@ composer install --no-dev --optimize-autoloader --no-interaction
 if [ -z "$APP_KEY" ]; then
   echo "Generando APP_KEY..."
   export APP_KEY=$(php artisan key:generate --show)
-  # Opcional: imprimirla para que la copies al dashboard
   echo "APP_KEY generada: $APP_KEY"
 fi
 
@@ -23,6 +22,10 @@ else
   echo "Migraciones ya ejecutadas, saltando..."
 fi
 
-echo "Cacheando configuración..."
+echo "Limpiando y cacheando configuración..."
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
 php artisan config:cache
 php artisan route:cache
+php artisan view:cache
