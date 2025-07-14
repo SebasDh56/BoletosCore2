@@ -8,25 +8,6 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AssignRoleMiddleware;
 
-<?php
-
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\PersonaController;
-use App\Http\Controllers\CooperativaController;
-use App\Http\Controllers\VentaController;
-use App\Http\Controllers\UserController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\AssignRoleMiddleware;
-
-<?php
-
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\PersonaController;
-use App\Http\Controllers\CooperativaController;
-use App\Http\Controllers\VentaController;
-use App\Http\Controllers\UserController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\AssignRoleMiddleware;
 
 Auth::routes();
 Route::get('/', [HomeController::class, 'index'])->name('home');
