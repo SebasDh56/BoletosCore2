@@ -1,38 +1,16 @@
 <?php
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PersonaController;
 use App\Http\Controllers\CooperativaController;
 use App\Http\Controllers\VentaController;
-use App\Http\Controllers\HomeController;
-use Illuminate\Support\Facades\Auth;
-
-
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('ventas/resumen', [VentaController::class, 'resumen'])->name('ventas.resumen');
-Route::resource('cooperativas', CooperativaController::class);
-Route::resource('personas', PersonaController::class);
-Route::resource('ventas', VentaController::class);
-
-
-Route::get('/inicio', function () {
-    return view('inicio');
-});
-
-Route::get('/suma', function () {
-    return view('suma');
-});
-
-Route::post('/suma', function (Request $request) {
-    $num1 = $request->input('num1');
-    $num2 = $request->input('num2');
-    $resultado = $num1 + $num2;
-    return view('suma', ['resultado' => $resultado]);
-    
-});
-
-
+Route::resource('personas', PersonaController::class)->middleware([\App\Http\Middleware\AssignRoleMiddleware::class, 'admin,cliente']);
+Route::resource('cooperativas', CooperativaController::class)->middleware([\App\Http\Middleware\AssignRoleMiddleware::class, 'admin,cliente']);
+Route::resource('ventas', VentaController::class)->middleware([\App\Http\Middleware\AssignRoleMiddleware::class, 'admin,cliente']);
+Route::put('cooperativas/{cooperativa}', [CooperativaController::class, 'update'])->middleware([\App\Http\Middleware\AssignRoleMiddleware::class, 'admin']);
+Route::get('ventas/resumen', [VentaController::class, 'resumen'])->name('ventas.resumen')->middleware([\App\Http\Middleware\AssignRoleMiddleware::class, 'admin,cliente']);
+Route::get('/users', [UserController::class, 'index'])->middleware([\App\Http\Middleware\AssignRoleMiddleware::class, 'admin'])->name('users.index');
 Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

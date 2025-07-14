@@ -131,6 +131,11 @@
                         <li class="nav-item">
                             <a class="nav-link text-white" href="{{ route('ventas.index') }}"><i class="bi bi-receipt-cutoff"></i> Ventas</a>
                         </li>
+                        @if (Auth::user()->role === 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('users.index') }}"><i class="bi bi-gear"></i> Gestionar Usuarios</a>
+                            </li>
+                        @endif
                     @endauth
                 </ul>
                 <ul class="navbar-nav ms-auto">
@@ -139,6 +144,9 @@
                             <a class="nav-link" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión</a>
                         </li>
                     @else
+                        <li class="nav-item">
+                            <span class="nav-link text-white">Hola, {{ Auth::user()->name }} ({{ Auth::user()->role ?? 'Cliente' }})</span>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
