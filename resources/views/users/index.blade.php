@@ -11,7 +11,9 @@
                 </div>
                 <div class="card-body">
                     <p class="lead">Aquí podrás gestionar los usuarios y cambiar sus roles.</p>
-                    <!-- Tabla de usuarios -->
+                    @if (session('success'))
+                        <div class="alert alert-success">{{ session('success') }}</div>
+                    @endif
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
@@ -29,8 +31,20 @@
                                         <td>{{ $user->name }}</td>
                                         <td>{{ $user->role ?? 'Cliente' }}</td>
                                         <td>
-                                            <!-- Espacio para acciones (a implementar más adelante) -->
-                                            -
+                                            <form action="{{ route('users.updateRole', $user->id) }}" method="POST" style="display:inline;">
+                                                @csrf
+                                                @method('PUT')
+                                                <select name="role" class="form-control d-inline-block w-auto">
+                                                    <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
+                                                    <option value="cliente" {{ $user->role == 'cliente' ? 'selected' : '' }}>Cliente</option>
+                                                </select>
+                                                <button type="submit" class="btn btn-primary btn-sm">Cambiar Rol</button>
+                                            </form>
+                                            <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este usuario?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                            </form>
                                         </td>
                                     </tr>
                                 @empty

@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -14,12 +15,10 @@ class AssignRoleMiddleware
             return redirect('/login')->with('error', 'Debes iniciar sesión.');
         }
 
-        // Asignar rol predeterminado 'cliente' si no está definido
         if (!Auth::user()->role) {
             $user = Auth::user();
             $user->role = 'cliente';
             $user->save();
-            // Forzar recarga de la sesión
             Auth::setUser($user);
         }
 
