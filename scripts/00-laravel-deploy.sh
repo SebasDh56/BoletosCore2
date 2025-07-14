@@ -29,3 +29,7 @@ php artisan view:clear
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+
+echo "Esperando a que PHP-FPM abra el socket..."
+timeout 30 bash -c 'while [ ! -S /var/run/php-fpm.sock ]; do sleep 1; done'
+echo "Socket php-fpm.sock encontrado ✅"
