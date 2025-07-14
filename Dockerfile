@@ -1,20 +1,21 @@
-FROM richarvey/nginx-php-fpm:1.7.2
+FROM php:8.2-fpm
 
-COPY . .
+# Instala dependencias
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    && docker-php-ext-install pdo_pgsql pgsql
 
-# Image config
-ENV SKIP_COMPOSER 1
-ENV WEBROOT /var/www/html/public
-ENV PHP_ERRORS_STDERR 1
-ENV RUN_SCRIPTS 1
-ENV REAL_IP_HEADER 1
+# Establece el directorio de trabajo
+WORKDIR /var/www
 
-# Laravel config
-ENV APP_ENV production
-ENV APP_DEBUG false
-ENV LOG_CHANNEL stderr
+# Copia los archivos del proyecto (incluyendo composer.json)
+COPY . /var/www
 
-# Allow composer to run as root
-ENV COMPOSER_ALLOW_SUPERUSER 1
+# Instala las dependencias de Composer
+RUN composer install --no-dev --optimize-autoloader
 
-CMD ["/start.sh"]
+# Configura permisos
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
+# Ejecuta migraciones y seeder, luego inicia el servidor
+CMD php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=$PORT
