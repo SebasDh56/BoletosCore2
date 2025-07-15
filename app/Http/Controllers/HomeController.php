@@ -21,8 +21,9 @@ class HomeController extends Controller
                 'cooperativas.nombre',
                 'cooperativas.cantidad_pasajeros',
                 'cooperativas.porcentaje_comision',
-                DB::raw('SUM(ventas.cantidad_boletos) as total_boletos'),
-                DB::raw('SUM(ventas.comision) as total_comision')
+                DB::raw('COALESCE(SUM(ventas.cantidad_boletos), 0) as total_boletos'),
+                DB::raw('COALESCE(SUM(ventas.comision), 0) as total_comision'),
+                DB::raw('COALESCE(SUM(ventas.precio_base * ventas.cantidad_boletos), 0) as total_ventas')
             )
             ->groupBy(
                 'cooperativas.id',
