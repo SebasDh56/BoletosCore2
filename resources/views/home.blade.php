@@ -10,7 +10,9 @@
                     <h4><i class="bi bi-speedometer2"></i> Bienvenido a BoletosCore</h4>
                 </div>
                 <div class="card-body">
-                    <p class="lead">Estás en el panel principal. Revisa el resumen de tus operaciones:</p>
+                    <p class="lead text-success fw-bold mb-4" style="background-color: #e9f7ef; padding: 10px; border-radius: 5px;">
+                        <i class="bi bi-info-circle-fill"></i> En total en ventas de la Cooperativa 1 y además la totalidad de comisiones y boletos restantes
+                    </p>
 
                     <!-- Sección de Resumen -->
                     <div class="card mb-4">
