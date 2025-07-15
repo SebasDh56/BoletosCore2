@@ -167,14 +167,6 @@
     </nav>
 
     <div class="container">
-<<<<<<< HEAD
-        
-       
-
-=======
-       
-       
->>>>>>> ae94010a44a5712416321ac0ea0aba020b18410f
         @yield('content')
     </div>
 
