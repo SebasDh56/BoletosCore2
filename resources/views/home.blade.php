@@ -46,7 +46,7 @@
                                             <th class="text-center">Boletos Vendidos</th>
                                             <th class="text-center">Boletos Disponibles</th>
                                             <th class="text-center">Total de Ventas</th>
-                                            <th class="text-center">Total de Comisión</th>
+                                         
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -56,7 +56,7 @@
                                                 <td class="text-center">{{ number_format($boletosVendidosPrincipal, 0) }}</td>
                                                 <td class="text-center">{{ number_format($boletosDisponiblesPrincipal, 0) }}</td>
                                                 <td class="text-center">${{ number_format($totalVentasPrincipal, 2) }}</td>
-                                                <td class="text-center">${{ number_format($totalComisionPrincipal, 2) }}</td>
+                                           
                                             </tr>
                                         @else
                                             <tr>
@@ -69,7 +69,7 @@
                         </div>
                     </div>
 
-                    <!-- Tabla para las Otras Cooperativas -->
+
                     <div class="card mb-4 shadow-sm">
                         <div class="card-header bg-gradient bg-primary text-white">
                             <h5 class="mb-0"><i class="bi bi-people-fill"></i> Otras Cooperativas</h5>

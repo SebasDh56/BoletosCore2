@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Venta;
@@ -15,11 +16,10 @@ class VentaController extends Controller
      * @return \Illuminate\View\View
      */
     public function index()
-    {
-        $ventas = Venta::with(['persona', 'cooperativa'])->get();
-        return view('ventas.index', compact('ventas'));
-    }
-
+{
+    $ventas = Venta::with(['persona', 'cooperativa.ventas'])->get();
+    return view('ventas.index', compact('ventas'));
+}
     /**
      * Muestra el formulario para crear una nueva venta.
      *
@@ -57,10 +57,15 @@ class VentaController extends Controller
 
         $cooperativa = $this->getAvailableCooperativa($validated['cantidad_boletos']);
         if (!$cooperativa) {
-            return redirect()->route('ventas.create')->with('error', 'No hay cooperativas con suficientes boletos disponibles.');
+            return redirect()->route('ventas.create')->with('error', 'No hay cooperativas disponibles con capacidad suficiente.');
         }
 
-        $comision = $validated['precio_base'] * ($cooperativa->porcentaje_comision / 100) * $validated['cantidad_boletos'];
+        $ventas_totales = Venta::where('cooperativa_id', $cooperativa->id)->sum('cantidad_boletos');
+        $capacidad_total = $cooperativa->cantidad_pasajeros;
+        $porcentaje_ocupacion = ($ventas_totales / $capacidad_total) * 100;
+        $porcentaje_comision = $this->calcularPorcentajeComision($porcentaje_ocupacion);
+
+        $comision = $validated['precio_base'] * ($porcentaje_comision / 100) * $validated['cantidad_boletos'];
         $venta = Venta::create([
             'persona_id' => $validated['persona_id'],
             'cooperativa_id' => $cooperativa->id,
@@ -70,7 +75,12 @@ class VentaController extends Controller
             'fecha_venta' => now(),
         ]);
 
-        return redirect()->route('ventas.index')->with('success', 'Venta registrada con éxito.');
+        return redirect()->route('ventas.create')->with([
+            'success' => 'Venta registrada con éxito.',
+            'cooperativa_nombre' => $cooperativa->nombre,
+            'porcentaje_ocupacion' => number_format($porcentaje_ocupacion, 2),
+            'comision' => number_format($comision, 2)
+        ]);
     }
 
     /**
@@ -126,7 +136,12 @@ class VentaController extends Controller
         ]);
 
         $cooperativa = Cooperativa::findOrFail($validated['cooperativa_id']);
-        $comision = $validated['precio_base'] * ($cooperativa->porcentaje_comision / 100) * $validated['cantidad_boletos'];
+        $ventas_totales = Venta::where('cooperativa_id', $cooperativa->id)->sum('cantidad_boletos');
+        $capacidad_total = $cooperativa->cantidad_pasajeros;
+        $porcentaje_ocupacion = ($ventas_totales / $capacidad_total) * 100;
+        $porcentaje_comision = $this->calcularPorcentajeComision($porcentaje_ocupacion);
+
+        $comision = $validated['precio_base'] * ($porcentaje_comision / 100) * $validated['cantidad_boletos'];
 
         $venta->update([
             'persona_id' => $validated['persona_id'],
@@ -162,15 +177,13 @@ class VentaController extends Controller
         $cooperativas = Cooperativa::select(
             'cooperativas.id',
             'cooperativas.nombre',
-            'cooperativas.cantidad_pasajeros',
-            'cooperativas.porcentaje_comision'
+            'cooperativas.cantidad_pasajeros'
         )
             ->leftJoin('ventas', 'cooperativas.id', '=', 'ventas.cooperativa_id')
             ->groupBy(
                 'cooperativas.id',
                 'cooperativas.nombre',
-                'cooperativas.cantidad_pasajeros',
-                'cooperativas.porcentaje_comision'
+                'cooperativas.cantidad_pasajeros'
             )
             ->selectRaw('SUM(ventas.cantidad_boletos) as boletos_vendidos')
             ->selectRaw('SUM(ventas.comision) as total_comision')
@@ -190,7 +203,7 @@ class VentaController extends Controller
     }
 
     /**
-     * Obtiene la primera cooperativa disponible con suficientes boletos.
+     * Obtiene la cooperativa con menos ventas y capacidad disponible.
      *
      * @param  int  $cantidad_boletos
      * @return \App\Models\Cooperativa|null
@@ -198,12 +211,36 @@ class VentaController extends Controller
     protected function getAvailableCooperativa($cantidad_boletos)
     {
         $cooperativas = Cooperativa::orderBy('id')->get();
+        $cooperativa_menos_vendida = null;
+        $menor_ventas = PHP_INT_MAX;
+
         foreach ($cooperativas as $cooperativa) {
             $ventas_totales = Venta::where('cooperativa_id', $cooperativa->id)->sum('cantidad_boletos');
-            if ($ventas_totales + $cantidad_boletos <= $cooperativa->cantidad_pasajeros) {
-                return $cooperativa;
+            $capacidad_disponible = $cooperativa->cantidad_pasajeros - $ventas_totales;
+
+            if ($capacidad_disponible >= $cantidad_boletos && $ventas_totales < $menor_ventas) {
+                $menor_ventas = $ventas_totales;
+                $cooperativa_menos_vendida = $cooperativa;
             }
         }
-        return null;
+
+        return $cooperativa_menos_vendida;
+    }
+
+    /**
+     * Calcula el porcentaje de comisión según el nivel de ocupación.
+     *
+     * @param  float  $porcentaje_ocupacion
+     * @return float
+     */
+    protected function calcularPorcentajeComision($porcentaje_ocupacion)
+    {
+        if ($porcentaje_ocupacion < 50) {
+            return 30;
+        } elseif ($porcentaje_ocupacion <= 80) {
+            return 15;
+        } else {
+            return 10;
+        }
     }
 }

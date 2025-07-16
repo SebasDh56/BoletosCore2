@@ -14,4 +14,9 @@ class Cooperativa extends Model
         'cantidad_pasajeros',
         'porcentaje_comision',
     ];
+
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class, 'cooperativa_id');
+    }
 }
