@@ -1,0 +1,13 @@
+{
+  "name": "notification-service",
+  "version": "1.0.0",
+  "description": "Servicio de notificaciones para BoletosCore",
+  "main": "notification-service.js",
+  "dependencies": {
+    "amqplib": "^0.10.3",
+    "nodemailer": "^6.9.7"
+  },
+  "scripts": {
+    "start": "node notification-service.js"
+  }
+}

@@ -1,13 +1,13 @@
-version: "3.8"
-
+# notification-service/docker-compose.override.yml
+version: '3.8'
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8000:80"
-    volumes:
-      - .:/var/www/html
+  notification-service:
+    build: .
+    container_name: notification-service-existing
+    network_mode: host  # <-- usa la red del host (127.0.0.1)
+    depends_on: []     # <-- no depende de nuevos contenedores
     environment:
-      - WEBROOT=/var/www/html/public
+      - RABBITMQ_HOST=127.0.0.1
+      - RABBITMQ_PORT=5672
+      - REDIS_HOST=127.0.0.1
+      - REDIS_PORT=6379

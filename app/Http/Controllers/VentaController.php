@@ -7,6 +7,9 @@ use App\Models\Persona;
 use App\Models\Cooperativa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Message\AMQPMessage;
+use Illuminate\Support\Facades\Log;
 
 class VentaController extends Controller
 {
@@ -41,47 +44,82 @@ class VentaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'persona_id' => 'required|exists:personas,id',
-            'precio_base' => 'required|numeric|min:0',
+            'persona_id'       => 'required|exists:personas,id',
+            'precio_base'      => 'required|numeric|min:0',
             'cantidad_boletos' => 'required|integer|min:1|max:50',
         ], [
-            'persona_id.required' => 'Debe seleccionar una persona.',
-            'persona_id.exists' => 'La persona seleccionada no existe.',
-            'precio_base.required' => 'El precio base es obligatorio.',
-            'precio_base.numeric' => 'El precio base debe ser un número.',
-            'precio_base.min' => 'El precio base no puede ser negativo.',
+            'persona_id.required'       => 'Debe seleccionar una persona.',
+            'persona_id.exists'         => 'La persona seleccionada no existe.',
+            'precio_base.required'      => 'El precio base es obligatorio.',
+            'precio_base.numeric'       => 'El precio base debe ser un número.',
+            'precio_base.min'           => 'El precio base no puede ser negativo.',
             'cantidad_boletos.required' => 'La cantidad de boletos es obligatoria.',
-            'cantidad_boletos.integer' => 'La cantidad de boletos debe ser un número entero.',
-            'cantidad_boletos.min' => 'Debe vender al menos un boleto.',
+            'cantidad_boletos.integer'  => 'La cantidad de boletos debe ser un número entero.',
+            'cantidad_boletos.min'      => 'Debe vender al menos un boleto.',
         ]);
 
         $cooperativa = $this->getAvailableCooperativa($validated['cantidad_boletos']);
         if (!$cooperativa) {
-            return redirect()->route('ventas.create')->with('error', 'No hay cooperativas disponibles con capacidad suficiente.');
+            return redirect()
+                ->route('ventas.create')
+                ->with('error', 'No hay cooperativas disponibles con capacidad suficiente.');
         }
 
-        $ventas_totales = Venta::where('cooperativa_id', $cooperativa->id)->sum('cantidad_boletos');
-        $capacidad_total = $cooperativa->cantidad_pasajeros;
+        $ventas_totales      = Venta::where('cooperativa_id', $cooperativa->id)
+                                    ->sum('cantidad_boletos');
+        $capacidad_total     = $cooperativa->cantidad_pasajeros;
         $porcentaje_ocupacion = ($ventas_totales / $capacidad_total) * 100;
-        $porcentaje_comision = $this->calcularPorcentajeComision($porcentaje_ocupacion);
+        $porcentaje_comision  = $this->calcularPorcentajeComision($porcentaje_ocupacion);
 
-        $comision = $validated['precio_base'] * ($porcentaje_comision / 100) * $validated['cantidad_boletos'];
+        $comision = $validated['precio_base']
+                    * ($porcentaje_comision / 100)
+                    * $validated['cantidad_boletos'];
+
         $venta = Venta::create([
-            'persona_id' => $validated['persona_id'],
-            'cooperativa_id' => $cooperativa->id,
+            'persona_id'       => $validated['persona_id'],
+            'cooperativa_id'   => $cooperativa->id,
             'cantidad_boletos' => $validated['cantidad_boletos'],
-            'precio_base' => $validated['precio_base'],
-            'comision' => $comision,
-            'fecha_venta' => now(),
+            'precio_base'      => $validated['precio_base'],
+            'comision'         => $comision,
+            'fecha_venta'      => now(),
         ]);
 
-        return redirect()->route('ventas.create')->with([
-            'success' => 'Venta registrada con éxito.',
-            'cooperativa_nombre' => $cooperativa->nombre,
-            'porcentaje_ocupacion' => number_format($porcentaje_ocupacion, 2),
-            'comision' => number_format($comision, 2)
-        ]);
+        // Publicar evento a RabbitMQ
+        try {
+            $connection = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
+            $channel    = $connection->channel();
+            $channel->queue_declare('ticket_purchase', false, true, false, false);
+
+            $payload = [
+                'email'              => $venta->persona->email ?? 'default@example.com',
+                'userName'           => $venta->persona->nombre,
+                'total'              => $venta->precio_base * $venta->cantidad_boletos,
+                'cantidad_boletos'   => $venta->cantidad_boletos,
+                'cooperativa_nombre' => $cooperativa->nombre,
+            ];
+
+            $msg = new AMQPMessage(json_encode($payload), [
+                'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
+            ]);
+            $channel->basic_publish($msg, '', 'ticket_purchase');
+            $channel->close();
+            $connection->close();
+
+            Log::info('Mensaje enviado a RabbitMQ', ['venta_id' => $venta->id]);
+        } catch (\Exception $e) {
+            Log::error('Error al publicar en RabbitMQ: ' . $e->getMessage());
+        }
+
+        return redirect()
+            ->route('ventas.create')
+            ->with([
+                'success'              => 'Venta registrada con éxito.',
+                'cooperativa_nombre'   => $cooperativa->nombre,
+                'porcentaje_ocupacion' => number_format($porcentaje_ocupacion, 2),
+                'comision'             => number_format($comision, 2),
+            ]);
     }
+  
 
     /**
      * Muestra los detalles de una venta específica.

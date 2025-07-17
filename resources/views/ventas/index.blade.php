@@ -16,6 +16,7 @@
                 <thead>
                     <tr>
                         <th>Persona</th>
+                        <th>E-mail</th>
                         <th>Cooperativa</th>
                         <th>Cantidad de Boletos</th>
                         <th>Precio Base</th>
@@ -28,6 +29,7 @@
                     @foreach ($ventas as $venta)
                         <tr>
                             <td>{{ $venta->persona->nombre ?? 'Sin persona' }}</td>
+                            <td>{{ $venta->persona->email ?? 'Sin e-mail' }}</td>
                             <td>{{ $venta->cooperativa->nombre ?? 'Sin cooperativa' }}</td>
                             <td>{{ $venta->cantidad_boletos ?? 0 }}</td>
                             <td>{{ number_format($venta->precio_base ?? 0, 2) }}</td>
