@@ -55,7 +55,8 @@ class TwoFactorController extends Controller
         }
 
         auth()->user()->update([
-            'is_2fa_enabled' => true
+            'two_factor_enabled' => true,
+            'two_factor_confirmed' => true,
         ]);
 
         return redirect()->route('home');
