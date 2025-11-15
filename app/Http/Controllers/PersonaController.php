@@ -24,9 +24,8 @@ class PersonaController extends Controller
             'nombre' => 'required|string|max:255',
             'cedula' => 'required|string|unique:personas|max:20',
             'edad' => 'required|integer|min:0|max:150',
-        ],
-    
-        [
+            'email' => 'nullable|email|max:255',
+        ], [
             'nombre.required' => 'El nombre es obligatorio.',
             'cedula.required' => 'La cédula es obligatoria.',
             'cedula.unique' => 'La cédula ya está registrada.',
@@ -34,12 +33,12 @@ class PersonaController extends Controller
             'edad.integer' => 'La edad debe ser un número entero.',
             'edad.min' => 'La edad no puede ser negativa.',
             'edad.max' => 'La edad no puede ser mayor a 150 años.',
+            'email.email' => 'El email debe ser válido.',
         ]);
 
         Persona::create($request->all());
         return redirect()->route('personas.index')->with('success', 'Persona creada con éxito');
     }
-
     public function edit($id)
     {
         $persona = Persona::findOrFail($id);
@@ -66,4 +65,6 @@ class PersonaController extends Controller
         $persona->delete();
         return redirect()->route('personas.index')->with('success', 'Persona eliminada con éxito');
     }
+
+    
 }

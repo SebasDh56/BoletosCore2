@@ -1,0 +1,24 @@
+_format_version: "3.0"
+services:
+ 
+
+  - name: analytics
+    url: http://host.docker.internal:4000
+    routes:
+      - name: analytics-ventas
+        paths: ["/analytics/ventas"]
+        strip_path: false
+
+  - name: rabbitmq-ui
+    url: http://rabbitmq:15672
+    routes:
+      - name: rabbitmq-route
+        paths: ["/rabbitmq"]
+        strip_path: false
+        
+  - name: notification-service
+    url: http://host.docker.internal:3000
+    routes:
+      - name: notification-route
+        paths: ["/notification"]
+        strip_path: false

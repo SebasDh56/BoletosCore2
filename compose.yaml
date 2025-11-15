@@ -1,0 +1,46 @@
+services:
+  analytics:
+    build: ./analytics-service
+    container_name: analytics
+    depends_on: [rabbitmq, mongo]
+    environment:
+      - AMQP_URL=amqp://guest:guest@rabbitmq:5672
+      - MONGO_URI=mongodb://mongo:27017/analytics
+    ports: ["4000:4000"]
+    networks: [app_net]
+
+  mongo:
+    image: mongo:5
+    container_name: mongo
+    ports: ["27017:27017"]
+    networks: [app_net]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks: [app_net]
+
+ 
+  kong:
+    image: kong:3.4
+    container_name: kong
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/declarative.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    volumes:
+      - ./kong:/kong
+
+
+networks:
+  app_net:
